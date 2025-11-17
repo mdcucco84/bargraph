@@ -28,8 +28,7 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 #y-axis {
     width: 50px;
     display: flex;
-    flex-direction: column-reverse; /* 0 at bottom */
-    justify-content: flex-start;
+    flex-direction: column-reverse;
     margin-right: 10px;
     text-align: right;
     font-size: 14px;
@@ -89,7 +88,7 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 <div id="controls">
     <input type="text" id="category" placeholder="Category">
     <input type="number" id="value" placeholder="Value" min="0">
-    <button onclick="addBar()">Add Bar</button>
+    <button id="addBarBtn">Add Bar</button>
     <button onclick="clearGraph()">Clear Graph</button>
     <button onclick="exportGraph()">Export as PNG</button>
 </div>
@@ -102,6 +101,8 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function(){
+
 // Random color
 function randomColor() {
     return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
@@ -151,6 +152,7 @@ function addBar() {
 
     const container = document.createElement("div");
     container.classList.add("bar-container");
+
     const bar = document.createElement("div");
     bar.classList.add("bar");
     bar.style.height = value*5 + "px";
@@ -165,6 +167,7 @@ function addBar() {
     container.appendChild(label);
     document.getElementById("graph").appendChild(container);
 
+    // Editable on click
     container.addEventListener("click", function() {
         const newValue = prompt("Enter new value for "+category, bar.textContent);
         const newLabel = prompt("Enter new label for "+category, label.textContent);
@@ -180,7 +183,13 @@ function addBar() {
 
 // Drag bars
 let dragging=null;
-function startDrag(e){ dragging=e.target; document.addEventListener("mousemove",dragBar); document.addEventListener("mouseup",endDrag);}
+document.getElementById("graph").addEventListener("mousedown", function(e){
+    if(e.target.classList.contains("bar")){
+        dragging=e.target;
+        document.addEventListener("mousemove", dragBar);
+        document.addEventListener("mouseup", endDrag);
+    }
+});
 function dragBar(e){
     if(!dragging)return;
     const graph = document.getElementById("graph");
@@ -192,7 +201,11 @@ function dragBar(e){
     dragging.textContent = Math.round(height/5);
     updateYAxis();
 }
-function endDrag(){ document.removeEventListener("mousemove",dragBar); document.removeEventListener("mouseup",endDrag); dragging=null; }
+function endDrag(){
+    document.removeEventListener("mousemove", dragBar);
+    document.removeEventListener("mouseup", endDrag);
+    dragging=null;
+}
 
 // Clear
 function clearGraph(){
@@ -228,6 +241,11 @@ function exportGraph(){
     link.href=canvas.toDataURL();
     link.click();
 }
+
+// Attach Add Bar button after DOM is ready
+document.getElementById("addBarBtn").addEventListener("click", addBar);
+
+});
 </script>
 
 <footer style="text-align:center; margin-top:20px; font-size:16px;">
