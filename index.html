@@ -7,7 +7,7 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        max-width: 900px;
+        max-width: 1000px;
         margin: 30px auto;
         padding: 20px;
         background: #f7f7f7;
@@ -15,26 +15,33 @@
     h2 { text-align: center; }
 
     #graph-wrapper {
-        position: relative;
         display: flex;
-        align-items: flex-end;
+        position: relative;
+        margin-top: 20px;
     }
 
-    /* Y-axis numbers */
+    /* Y-axis */
     #y-axis {
-        width: 40px;
+        width: 50px;
         display: flex;
-        flex-direction: column-reverse;
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: flex-end;
         margin-right: 10px;
         text-align: right;
         font-size: 14px;
-        height: 350px;
+        padding-bottom: 10px;
     }
 
-    /* Graph bars area */
-    #graph-area {
+    #y-axis div {
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    #graph-container {
         position: relative;
+        flex: 1;
     }
 
     #graph {
@@ -47,17 +54,27 @@
         padding: 10px;
         background: #fff;
         position: relative;
-        z-index: 5;
+        overflow: visible;
     }
 
     /* Horizontal grid lines */
     .grid-line {
         position: absolute;
-        left: 10px;
-        right: 0;
+        left: 0;
+        width: 100%;
         height: 1px;
         background: #cccccc;
-        z-index: 1;
+        z-index: 0;
+    }
+
+    /* Vertical grid lines */
+    .v-grid-line {
+        position: absolute;
+        top: 0;
+        width: 1px;
+        height: 100%;
+        background: #cccccc;
+        z-index: 0;
     }
 
     .bar-container {
@@ -65,6 +82,7 @@
         flex-direction: column;
         align-items: center;
         cursor: grab;
+        position: relative;
     }
 
     .bar {
@@ -73,16 +91,29 @@
         color: white;
         border-radius: 5px 5px 0 0;
         user-select: none;
+        z-index: 10;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 5px;
+        font-weight: bold;
     }
 
-    /* X-axis labels BELOW the black line */
     .label {
-        margin-top: 10px;
+        position: absolute;
+        top: -25px;
+        color: #000;
+        font-size: 14px;
+        width: 80px;
         text-align: center;
-        width: 60px;
         word-wrap: break-word;
-        position: relative;
-        top: 5px;
+    }
+
+    #axis-titles {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        font-weight: bold;
     }
 
     #controls {
@@ -118,51 +149,65 @@
 <div id="graph-wrapper">
     <div id="y-axis"></div>
 
-    <div id="graph-area" style="position:relative;">
+    <div id="graph-container">
         <div id="graph"></div>
     </div>
 </div>
 
+<div id="axis-titles">
+    <div id="y-title">Number of Students</div>
+    <div id="x-title">Categories</div>
+</div>
+
 <script>
-// Random color generator
+// RANDOM COLOR
 function randomColor() {
     return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
 }
 
-// Draw Y numbers + grid lines
+// UPDATE Y-AXIS + GRIDLINES
 function updateYAxis() {
     const bars = [...document.querySelectorAll(".bar")];
     const yAxis = document.getElementById("y-axis");
-    const graphArea = document.getElementById("graph-area");
+    const graphContainer = document.getElementById("graph-container");
 
     yAxis.innerHTML = "";
-    [...document.querySelectorAll(".grid-line")].forEach(e => e.remove());
+    [...document.querySelectorAll(".grid-line")].forEach(line => line.remove());
+    [...document.querySelectorAll(".v-grid-line")].forEach(line => line.remove());
 
     if (bars.length === 0) return;
 
     const values = bars.map(b => parseInt(b.textContent));
     const maxValue = Math.max(...values);
 
-    for (let i = maxValue; i >= 0; i--) {
+    // Y-axis numbers and horizontal grid lines
+    for (let i = 0; i <= maxValue; i++) {
         const mark = document.createElement("div");
         mark.textContent = i;
-        mark.style.height = "calc(350px / " + maxValue + ")";
         yAxis.appendChild(mark);
 
-        // Add matching grid line except the bottom line
         if (i > 0) {
             const grid = document.createElement("div");
             grid.classList.add("grid-line");
-
-            // Position line
-            grid.style.bottom = "calc((" + (maxValue - i) + " * (350px/" + maxValue + ")) + 10px)";
-
-            graphArea.appendChild(grid);
+            let yPos = (350 / maxValue) * i;
+            grid.style.bottom = yPos + 10 + "px";
+            graphContainer.appendChild(grid);
         }
     }
+
+    // Vertical grid lines aligned with each bar
+    bars.forEach((bar, index) => {
+        const vLine = document.createElement("div");
+        vLine.classList.add("v-grid-line");
+        const barWidth = 50;
+        const gap = 15;
+        const xPos = index * (barWidth + gap) + 10 + barWidth / 2;
+        vLine.style.left = xPos + "px";
+        graphContainer.appendChild(vLine);
+    });
 }
 
-// Add bar
+// ADD BAR
 function addBar() {
     const category = document.getElementById("category").value;
     const value = document.getElementById("value").value;
@@ -181,16 +226,28 @@ function addBar() {
     bar.style.backgroundColor = randomColor();
     bar.textContent = value;
 
-    bar.addEventListener("mousedown", startDrag);
-
     const label = document.createElement("div");
     label.classList.add("label");
     label.textContent = category;
 
     container.appendChild(bar);
     container.appendChild(label);
-
     document.getElementById("graph").appendChild(container);
+
+    // Make bar editable
+    container.addEventListener("click", function() {
+        const newValue = prompt("Enter new value for " + category, bar.textContent);
+        const newLabel = prompt("Enter new label for " + category, label.textContent);
+
+        if (newValue !== null && !isNaN(newValue)) {
+            bar.style.height = newValue * 5 + "px";
+            bar.textContent = newValue;
+        }
+        if (newLabel !== null) {
+            label.textContent = newLabel;
+        }
+        updateYAxis();
+    });
 
     document.getElementById("category").value = "";
     document.getElementById("value").value = "";
@@ -198,7 +255,7 @@ function addBar() {
     updateYAxis();
 }
 
-// Drag logic
+// DRAGGING
 let dragging = null;
 
 function startDrag(e) {
@@ -212,12 +269,11 @@ function dragBar(e) {
     if (!dragging) return;
 
     const graph = document.getElementById("graph");
-    const graphRect = graph.getBoundingClientRect();
+    const rect = graph.getBoundingClientRect();
 
-    let height = graphRect.bottom - e.clientY;
-
+    let height = rect.bottom - e.clientY;
     if (height < 0) height = 0;
-    if (height > graphRect.height) height = graphRect.height;
+    if (height > rect.height) height = rect.height;
 
     dragging.style.height = height + "px";
     dragging.textContent = Math.round(height / 5);
@@ -231,14 +287,15 @@ function endDrag() {
     dragging = null;
 }
 
-// Clear graph
+// CLEAR
 function clearGraph() {
     document.getElementById("graph").innerHTML = "";
     document.getElementById("y-axis").innerHTML = "";
-    [...document.querySelectorAll(".grid-line")].forEach(e => e.remove());
+    [...document.querySelectorAll(".grid-line")].forEach(line => line.remove());
+    [...document.querySelectorAll(".v-grid-line")].forEach(line => line.remove());
 }
 
-// Export graph as PNG
+// EXPORT
 function exportGraph() {
     const graph = document.getElementById("graph");
 
@@ -251,33 +308,4 @@ function exportGraph() {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    [...graph.children].forEach((container, index) => {
-        const bar = container.querySelector(".bar");
-        const label = container.querySelector(".label");
-
-        const x = 20 + index * 70;
-        const barHeight = parseInt(bar.style.height);
-
-        ctx.fillStyle = bar.style.backgroundColor;
-        ctx.fillRect(x, canvas.height - barHeight - 20, 50, barHeight);
-
-        ctx.fillStyle = "#000";
-        ctx.font = "16px Arial";
-        ctx.fillText(bar.textContent, x + 10, canvas.height - barHeight - 30);
-
-        ctx.fillText(label.textContent, x, canvas.height - 5);
-    });
-
-    const link = document.createElement("a");
-    link.download = "bar_graph.png";
-    link.href = canvas.toDataURL();
-    link.click();
-}
-</script>
-
-<footer style="text-align:center; margin-top:20px; font-size:16px;">
-    Created by Mr. Cucco 2025
-</footer>
-
-</body>
-</html>
+    [...graph.children].forEach((container, index)
