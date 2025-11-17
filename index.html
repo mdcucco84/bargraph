@@ -39,6 +39,7 @@
         font-size: 12px;
     }
 
+    /* Graph area */
     #graph-area {
         position: relative;
         width: 100%;
@@ -46,9 +47,11 @@
         border-bottom: 2px solid black;
         padding-left: 10px;
         background: white;
+
+        /* DOUBLE SPACING BETWEEN BARS HERE */
         display: flex;
         align-items: flex-end;
-        gap: 20px;
+        gap: 40px; /* increased spacing */
     }
 
     /* Horizontal grid lines */
@@ -107,33 +110,29 @@
 
 <div id="graph-wrapper">
     <div id="y-axis"></div>
-
     <div id="graph-area"></div>
 </div>
 
 <script>
 const GRAPH_HEIGHT = 350;
-const SCALE = 5; // 1 data unit = 5px
+const SCALE = 5; // 1 unit = 5px
 
 function updateYAxis(maxValue) {
     const yAxis = document.getElementById("y-axis");
     yAxis.innerHTML = "";
 
-    // Draw numbers + horizontal grid lines
     const graphArea = document.getElementById("graph-area");
     [...graphArea.querySelectorAll(".grid-line")].forEach(e => e.remove());
 
     for (let i = 0; i <= maxValue; i++) {
         const yPos = GRAPH_HEIGHT - i * SCALE;
 
-        // number
         const num = document.createElement("div");
         num.className = "y-number";
         num.style.bottom = (i * SCALE) + "px";
         num.textContent = i;
         yAxis.appendChild(num);
 
-        // grid line
         const gl = document.createElement("div");
         gl.className = "grid-line";
         gl.style.bottom = (i * SCALE) + "px";
@@ -161,7 +160,6 @@ function addBar() {
     bar.style.backgroundColor = randomColor();
     bar.textContent = value;
 
-    // Drag to change height
     bar.onmousedown = startDrag;
 
     const lbl = document.createElement("div");
@@ -193,7 +191,7 @@ function randomColor() {
     return "hsl(" + Math.random()*360 + ",70%,50%)";
 }
 
-/******** Drag-to-resize ********/
+/* Dragging */
 let activeBar = null;
 let startY = 0;
 let startHeight = 0;
@@ -221,7 +219,7 @@ function stopDrag() {
     document.onmouseup = null;
 }
 
-/******** Export ********/
+/* Export */
 function exportGraph() {
     const area = document.getElementById("graph-area");
     const canvas = document.createElement("canvas");
@@ -238,7 +236,8 @@ function exportGraph() {
         const bar = box.querySelector(".bar");
         const label = box.querySelector(".label");
         const barHeight = parseInt(bar.style.height);
-        const x = i * 70 + 20;
+        const x = i * 100 + 20; // DOUBLE SPACING IN EXPORT TOO
+
         const y = canvas.height - barHeight;
 
         ctx.fillStyle = bar.style.backgroundColor;
@@ -246,7 +245,7 @@ function exportGraph() {
 
         ctx.fillStyle = "#000";
         ctx.fillText(bar.textContent, x + 15, y - 5);
-        ctx.fillText(label.textContent, x + 15, canvas.height - 5);
+        ctx.fillText(label.textContent, x + 5, canvas.height - 5);
     });
 
     const link = document.createElement("a");
