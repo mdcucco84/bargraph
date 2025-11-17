@@ -1,99 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Student Bar Graph Creator</title>
+<meta charset="utf-8" />
+<title>Student Bar Graph Creator — Double Spacing, Fixed Axis & Labels</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        max-width: 900px;
-        margin: 20px auto;
-        background: #f4f4f4;
-        padding: 20px;
-    }
-    h2 { text-align: center; margin-top: 0; }
+  :root{
+    --graph-height:350px;     /* height of graph area */
+    --scale:5;                /* px per data unit */
+    --bar-width:50px;
+    --gap:40px;               /* DOUBLE spacing between bars */
+    --left-padding:10px;      /* inside left padding for bars area */
+  }
 
-    #controls {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    input { padding: 6px; margin-right: 10px; }
-    button { padding: 6px 15px; margin: 5px; cursor: pointer; }
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 1000px;
+    margin: 24px auto;
+    padding: 18px;
+    background:#f7f7f7;
+    color:#111;
+  }
 
-    #graph-wrapper {
-        display: flex;
-        align-items: flex-end;
-    }
+  h2 { text-align:center; margin-top:0; }
 
-    /* Y-axis */
-    #y-axis {
-        width: 40px;
-        position: relative;
-        height: 350px;
-        border-right: 2px solid black;
-    }
-    .y-number {
-        position: absolute;
-        left: 0;
-        transform: translateY(50%);
-        font-size: 12px;
-    }
+  #controls { text-align:center; margin-bottom:16px; }
+  input { padding:6px; margin-right:8px; }
+  button { padding:6px 12px; margin:6px; cursor:pointer; }
 
-    /* Graph area */
-    #graph-area {
-        position: relative;
-        width: 100%;
-        height: 350px;
-        border-bottom: 2px solid black;
-        padding-left: 10px;
-        background: white;
+  /* layout containing y-axis + graph + labels */
+  #graph-wrapper { display:flex; align-items:flex-end; gap:12px; }
 
-        /* DOUBLE SPACING BETWEEN BARS HERE */
-        display: flex;
-        align-items: flex-end;
-        gap: 40px; /* increased spacing */
+  /* Y axis column (numbers) */
+  #y-axis {
+    width:48px;
+    position:relative;
+    height: calc(var(--graph-height) + 0px); /* same height as graph container */
+    box-sizing:border-box;
+    font-size:13px;
+  }
+  .y-tick {
+    position:absolute;
+    right:6px;
+    transform:translateY(50%);
+  }
+
+  /* Graph container holds the bars area and draws the x-axis line */
+  #graph-container {
+    position:relative;
+    flex:1;
+    height: calc(var(--graph-height));
+    box-sizing:border-box;
+    padding-left: var(--left-padding);
+    background: #fff;
+  }
+
+  /* Bars area (flex row). Bars align to bottom of container */
+  #bars-row {
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    height:100%;
+    gap: var(--gap);   /* double spacing */
+    padding-right: var(--left-padding);
+    box-sizing:border-box;
+    /* don't draw axis here — axis is separate element */
+  }
+
+  /* horizontal grid lines (absolute inside graph-container) */
+  .grid-line {
+    position:absolute;
+    left:0;
+    width:100%;
+    height:1px;
+    background:#e6e6e6;
+    z-index:0;
+  }
+
+  /* vertical guide lines (optional subtle) */
+  .v-line {
+    position:absolute;
+    top:0;
+    width:1px;
+    height:100%;
+    background:#f0f0f0;
+    z-index:0;
+  }
+
+  /* actual x-axis line */
+  #x-axis {
+    position:absolute;
+    left:0;
+    right:0;
+    height:2px;
+    bottom:0;
+    background:#000;
+    z-index:5;
+  }
+
+  /* Each bar box just contains the bar itself (no label here) */
+  .bar-box {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width: calc(var(--bar-width));
+    box-sizing:border-box;
+    z-index:10; /* above grid lines */
+  }
+
+  .bar {
+    width: var(--bar-width);
+    border-radius:6px 6px 0 0;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    color:#fff;
+    font-weight:700;
+    padding-bottom:6px; /* spacing inside bar so number doesn't sit flush */
+    box-sizing:border-box;
+    user-select:none;
+  }
+
+  /* Labels row sits below the graph container and x-axis */
+  #labels-row {
+    display:flex;
+    align-items:flex-start;
+    gap: var(--gap);
+    margin-top:8px;
+    padding-left: calc(var(--left-padding));
+    padding-right: calc(var(--left-padding));
+    box-sizing:border-box;
+  }
+
+  .label {
+    width: calc(var(--bar-width));
+    text-align:center;
+    font-size:14px;
+    word-wrap:break-word;
+  }
+
+  footer { text-align:center; margin-top:18px; font-size:15px; }
+
+  /* responsive: shrink gap & bar on smaller screens */
+  @media (max-width:720px){
+    :root{
+      --gap:24px;
+      --bar-width:44px;
+      --scale:4;
     }
-
-    /* Horizontal grid lines */
-    .grid-line {
-        position: absolute;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: #e2e2e2;
-    }
-
-    /* Bars + labels */
-    .bar-box {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .bar {
-        width: 50px;
-        background: steelblue;
-        border-radius: 5px 5px 0 0;
-        text-align: center;
-        color: white;
-        font-weight: bold;
-        padding-top: 5px;
-        user-select: none;
-    }
-
-    .label {
-        margin-top: 8px;
-        font-size: 14px;
-        width: 80px;
-        text-align: center;
-    }
-
-    footer {
-        text-align: center;
-        margin-top: 25px;
-        font-size: 16px;
-    }
-
+  }
 </style>
 </head>
 <body>
@@ -101,161 +156,292 @@
 <h2>Student Bar Graph Creator</h2>
 
 <div id="controls">
-    <input type="text" id="category" placeholder="Category">
-    <input type="number" id="value" placeholder="Value" min="0">
-    <button onclick="addBar()">Add Bar</button>
-    <button onclick="clearGraph()">Clear Graph</button>
-    <button onclick="exportGraph()">Export as PNG</button>
+  <input type="text" id="category" placeholder="Category (label)" />
+  <input type="number" id="value" placeholder="Value" min="0" />
+  <button id="addBtn">Add Bar</button>
+  <button id="clearBtn">Clear Graph</button>
+  <button id="exportBtn">Export as PNG</button>
 </div>
 
 <div id="graph-wrapper">
-    <div id="y-axis"></div>
-    <div id="graph-area"></div>
+  <div id="y-axis" aria-hidden="true"></div>
+
+  <div id="graph-container" role="img" aria-label="Bar graph area">
+    <div id="bars-row" aria-live="polite"></div>
+
+    <!-- x-axis drawn as its own element so bars visually touch it -->
+    <div id="x-axis" aria-hidden="true"></div>
+  </div>
 </div>
 
-<script>
-const GRAPH_HEIGHT = 350;
-const SCALE = 5; // 1 unit = 5px
-
-function updateYAxis(maxValue) {
-    const yAxis = document.getElementById("y-axis");
-    yAxis.innerHTML = "";
-
-    const graphArea = document.getElementById("graph-area");
-    [...graphArea.querySelectorAll(".grid-line")].forEach(e => e.remove());
-
-    for (let i = 0; i <= maxValue; i++) {
-        const yPos = GRAPH_HEIGHT - i * SCALE;
-
-        const num = document.createElement("div");
-        num.className = "y-number";
-        num.style.bottom = (i * SCALE) + "px";
-        num.textContent = i;
-        yAxis.appendChild(num);
-
-        const gl = document.createElement("div");
-        gl.className = "grid-line";
-        gl.style.bottom = (i * SCALE) + "px";
-        graphArea.appendChild(gl);
-    }
-}
-
-function addBar() {
-    const label = document.getElementById("category").value.trim();
-    const value = parseInt(document.getElementById("value").value);
-
-    if (!label || isNaN(value)) {
-        alert("Enter both a label and a value.");
-        return;
-    }
-
-    const graph = document.getElementById("graph-area");
-
-    const box = document.createElement("div");
-    box.className = "bar-box";
-
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.style.height = (value * SCALE) + "px";
-    bar.style.backgroundColor = randomColor();
-    bar.textContent = value;
-
-    bar.onmousedown = startDrag;
-
-    const lbl = document.createElement("div");
-    lbl.className = "label";
-    lbl.textContent = label;
-
-    box.appendChild(bar);
-    box.appendChild(lbl);
-    graph.appendChild(box);
-
-    updateYAxis(calculateMaxValue());
-
-    document.getElementById("category").value = "";
-    document.getElementById("value").value = "";
-}
-
-function calculateMaxValue() {
-    const bars = [...document.querySelectorAll(".bar")];
-    if (bars.length === 0) return 10;
-    return Math.max(...bars.map(b => parseInt(b.textContent)));
-}
-
-function clearGraph() {
-    document.getElementById("graph-area").innerHTML = "";
-    document.getElementById("y-axis").innerHTML = "";
-}
-
-function randomColor() {
-    return "hsl(" + Math.random()*360 + ",70%,50%)";
-}
-
-/* Dragging */
-let activeBar = null;
-let startY = 0;
-let startHeight = 0;
-
-function startDrag(e) {
-    activeBar = e.target;
-    startY = e.clientY;
-    startHeight = parseInt(activeBar.style.height);
-    document.onmousemove = drag;
-    document.onmouseup = stopDrag;
-}
-
-function drag(e) {
-    if (!activeBar) return;
-    let newHeight = startHeight + (startY - e.clientY);
-    if (newHeight < 0) newHeight = 0;
-    activeBar.style.height = newHeight + "px";
-    activeBar.textContent = Math.round(newHeight / SCALE);
-    updateYAxis(calculateMaxValue());
-}
-
-function stopDrag() {
-    activeBar = null;
-    document.onmousemove = null;
-    document.onmouseup = null;
-}
-
-/* Export */
-function exportGraph() {
-    const area = document.getElementById("graph-area");
-    const canvas = document.createElement("canvas");
-    canvas.width = area.offsetWidth;
-    canvas.height = area.offsetHeight;
-    const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const boxes = [...area.children];
-
-    boxes.forEach((box, i) => {
-        const bar = box.querySelector(".bar");
-        const label = box.querySelector(".label");
-        const barHeight = parseInt(bar.style.height);
-        const x = i * 100 + 20; // DOUBLE SPACING IN EXPORT TOO
-
-        const y = canvas.height - barHeight;
-
-        ctx.fillStyle = bar.style.backgroundColor;
-        ctx.fillRect(x, y, 50, barHeight);
-
-        ctx.fillStyle = "#000";
-        ctx.fillText(bar.textContent, x + 15, y - 5);
-        ctx.fillText(label.textContent, x + 5, canvas.height - 5);
-    });
-
-    const link = document.createElement("a");
-    link.download = "bar_graph.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-}
-</script>
+<!-- labels row separate so labels appear under the x-axis -->
+<div id="labels-row" aria-hidden="true"></div>
 
 <footer>Created by Mr. Cucco 2025</footer>
 
+<script>
+/* Constants should match CSS root variables */
+const SCALE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale')) || 5;
+const GRAPH_PX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--graph-height')) || 350;
+const BAR_WIDTH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-width')) || 50;
+const GAP = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 40;
+const LEFT_PADDING = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--left-padding')) || 10;
+
+const addBtn = document.getElementById('addBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+
+addBtn.addEventListener('click', addBar);
+clearBtn.addEventListener('click', clearGraph);
+exportBtn.addEventListener('click', exportGraph);
+
+/* helper: random bright color */
+function randomColor(){
+  return `hsl(${Math.floor(Math.random()*360)},70%,45%)`;
+}
+
+/* compute current numeric values from bars */
+function getValues(){
+  return [...document.querySelectorAll('#bars-row .bar')].map(b => parseFloat(b.dataset.value) || 0);
+}
+
+/* update y-axis ticks and horizontal grid lines */
+function updateYAxisAndGrid(){
+  const yAxis = document.getElementById('y-axis');
+  const graph = document.getElementById('graph-container');
+
+  // remove old ticks and grid lines
+  yAxis.innerHTML = '';
+  [...graph.querySelectorAll('.grid-line')].forEach(n => n.remove());
+  [...graph.querySelectorAll('.v-line')].forEach(n => n.remove());
+
+  const values = getValues();
+  const maxVal = values.length ? Math.max(...values) : 10;
+  // choose a sensible tick step so chart doesn't create thousands of ticks
+  // we will use integer ticks from 0..maxVal (works for classroom-sized numbers)
+  for(let v=0; v<=maxVal; v++){
+    // y-axis tick label
+    const tick = document.createElement('div');
+    tick.className = 'y-tick';
+    // position from bottom: v * SCALE px
+    tick.style.bottom = (v * SCALE) + 'px';
+    tick.textContent = v;
+    yAxis.appendChild(tick);
+
+    // horizontal grid line (so it lines up visually with the tick)
+    const grid = document.createElement('div');
+    grid.className = 'grid-line';
+    grid.style.bottom = (v * SCALE) + 'px';
+    graph.appendChild(grid);
+  }
+
+  // vertical guide lines centered on each bar (optional faint lines)
+  const bars = document.querySelectorAll('#bars-row .bar-box');
+  bars.forEach((box, i) => {
+    const vline = document.createElement('div');
+    vline.className = 'v-line';
+    // compute x-position relative to graph-container: left padding + i*(barWidth+gap) + barWidth/2
+    const x = LEFT_PADDING + i * (BAR_WIDTH + GAP) + (BAR_WIDTH/2);
+    vline.style.left = x + 'px';
+    graph.appendChild(vline);
+  });
+}
+
+/* add a bar and matching label */
+function addBar(){
+  const cat = document.getElementById('category').value.trim();
+  const valRaw = document.getElementById('value').value;
+
+  if(!cat || valRaw === ''){
+    alert('Please enter a category (label) and a numeric value.');
+    return;
+  }
+  const val = Number(valRaw);
+  if(Number.isNaN(val) || val < 0){
+    alert('Value must be a non-negative number.');
+    return;
+  }
+
+  // create bar box
+  const box = document.createElement('div');
+  box.className = 'bar-box';
+
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  // store numeric value on dataset for robust reading
+  bar.dataset.value = String(val);
+  bar.style.height = (val * SCALE) + 'px';
+  bar.style.background = randomColor();
+  bar.textContent = String(Math.round(val));
+
+  // dragging behavior
+  bar.addEventListener('mousedown', startDrag);
+
+  // add to bars row
+  document.getElementById('bars-row').appendChild(box);
+  box.appendChild(bar);
+
+  // create label in labels-row (separate container)
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = cat;
+  document.getElementById('labels-row').appendChild(label);
+
+  // click-to-edit (opens small prompt for quick edits)
+  box.addEventListener('dblclick', () => {
+    const newVal = prompt('Enter new numeric value for "' + cat + '"', String(bar.dataset.value));
+    const newLabel = prompt('Enter new label (category)', cat);
+    if(newVal !== null){
+      const n = Number(newVal);
+      if(!Number.isNaN(n) && n >= 0){
+        bar.dataset.value = String(n);
+        bar.style.height = (n * SCALE) + 'px';
+        bar.textContent = String(Math.round(n));
+      } else {
+        alert('Value must be a non-negative number.');
+      }
+    }
+    if(newLabel !== null){
+      label.textContent = newLabel;
+    }
+    updateYAxisAndGrid();
+  });
+
+  // refresh axis/grid
+  updateYAxisAndGrid();
+
+  // clear inputs
+  document.getElementById('category').value = '';
+  document.getElementById('value').value = '';
+}
+
+/* Drag-to-resize implementation (mouse only for simplicity) */
+let dragging = null;
+let startY = 0;
+let startH = 0;
+
+function startDrag(e){
+  if(e.button !== 0) return; // left button only
+  dragging = e.currentTarget;
+  startY = e.clientY;
+  startH = parseFloat(getComputedStyle(dragging).height) || 0;
+  // prevent selecting text while dragging
+  document.body.style.userSelect = 'none';
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', endDrag);
+}
+
+function onDrag(e){
+  if(!dragging) return;
+  const dy = startY - e.clientY; // positive when mouse moves up
+  let newH = startH + dy;
+  if(newH < 0) newH = 0;
+  if(newH > GRAPH_PX) newH = GRAPH_PX;
+  dragging.style.height = newH + 'px';
+  dragging.dataset.value = String(Math.round(newH / SCALE));
+  dragging.textContent = String(Math.round(newH / SCALE));
+  updateYAxisAndGrid();
+}
+
+function endDrag(){
+  dragging = null;
+  document.body.style.userSelect = '';
+  window.removeEventListener('mousemove', onDrag);
+  window.removeEventListener('mouseup', endDrag);
+}
+
+/* clear everything: bars, labels, ticks */
+function clearGraph(){
+  document.getElementById('bars-row').innerHTML = '';
+  document.getElementById('labels-row').innerHTML = '';
+  document.getElementById('y-axis').innerHTML = '';
+  // remove any old grid/vline elements
+  [...document.querySelectorAll('#graph-container .grid-line')].forEach(n => n.remove());
+  [...document.querySelectorAll('#graph-container .v-line')].forEach(n => n.remove());
+}
+
+/* export — draw bars and labels on a canvas */
+function exportGraph(){
+  const barsRow = document.getElementById('bars-row');
+  const labelsRow = document.getElementById('labels-row');
+  const container = document.getElementById('graph-container');
+
+  const barCount = barsRow.children.length;
+  if(barCount === 0){
+    alert('No bars to export.');
+    return;
+  }
+
+  // compute canvas size
+  // width = left padding + barCount*(barWidth) + (barCount-1)*gap + right padding (we used left+right padding via CSS)
+  const leftPad = LEFT_PADDING;
+  const rightPad = LEFT_PADDING;
+  const width = Math.ceil(leftPad + barCount*BAR_WIDTH + (barCount-1)*GAP + rightPad);
+  const height = Math.ceil(GRAPH_PX + 50); // extra for labels below
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // white background
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,width,height);
+
+  // draw horizontal grid lines for ticks 0..max
+  const values = getValues();
+  const maxVal = values.length ? Math.max(...values) : 10;
+  ctx.fillStyle = '#e9e9e9';
+  for(let v=0; v<=maxVal; v++){
+    const y = Math.round(GRAPH_PX - v*SCALE);
+    ctx.fillRect(0, y, width, 1);
+    // tick label on left
+    ctx.fillStyle = '#000';
+    ctx.font = '12px Arial';
+    ctx.fillText(String(v), 2, y + 4);
+    ctx.fillStyle = '#e9e9e9';
+  }
+
+  // draw x-axis
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, GRAPH_PX, width, 2);
+
+  // draw each bar and label
+  for(let i=0; i<barCount; i++){
+    const box = barsRow.children[i];
+    const bar = box.querySelector('.bar');
+    const label = labelsRow.children[i];
+    const val = Number(bar.dataset.value) || 0;
+    const barH = Math.round(val * SCALE);
+
+    const x = Math.round(leftPad + i*(BAR_WIDTH + GAP));
+    const y = Math.round(GRAPH_PX - barH);
+
+    // bar
+    ctx.fillStyle = bar.style.background || '#4a90e2';
+    ctx.fillRect(x, y, BAR_WIDTH, barH);
+
+    // value above bar
+    ctx.fillStyle = '#000';
+    ctx.font = '14px Arial';
+    ctx.fillText(String(Math.round(val)), x + BAR_WIDTH/2 - 6, y - 6);
+
+    // label under axis
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(label.textContent, x + BAR_WIDTH/2, GRAPH_PX + 18);
+    ctx.textAlign = 'start';
+  }
+
+  // trigger download
+  const link = document.createElement('a');
+  link.download = 'bar_graph.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* initialize with empty axis showing 0 */
+updateYAxisAndGrid();
+</script>
 </body>
 </html>
