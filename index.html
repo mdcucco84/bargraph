@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PASCS Clifton Elementary Bar Chart</title>
+<title>Editable Bar Chart</title>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,7 @@
         margin-bottom: 25px;
         padding: 15px;
         border: 1px solid #ccc;
-        width: 450px;
+        width: 550px;
         background: #f8f8f8;
     }
     input {
@@ -31,13 +31,13 @@
         cursor: pointer;
     }
     #chart-container {
-        max-width: 700px;
+        max-width: 800px;
     }
 </style>
 </head>
 <body>
 
-<h2>Editable Bar Chart</h2>
+<h2>Editable Bar Chart (6 Values)</h2>
 
 <!-- Editable Data Section -->
 <div class="editor">
@@ -49,7 +49,7 @@
     <input type="text" id="x3" value="C">
     <input type="text" id="x4" value="D">
     <input type="text" id="x5" value="E">
-    <input type="text" id="x5" value="F">
+    <input type="text" id="x6" value="F">
 
     <br><br>
 
@@ -59,7 +59,7 @@
     <input type="number" id="y3" value="3">
     <input type="number" id="y4" value="4">
     <input type="number" id="y5" value="5">
-    <input type="number" id="y5" value="6">
+    <input type="number" id="y6" value="6">
 
     <br><br>
 
@@ -106,7 +106,7 @@ function createChart(labels, values) {
     });
 }
 
-// Load initial chart
+// Initial chart load
 createChart(['A', 'B', 'C', 'D', 'E', 'F'], [1, 2, 3, 4, 5, 6]);
 
 // Update chart with edited values
