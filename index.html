@@ -112,7 +112,7 @@
 
     #axis-titles {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         margin-top: 5px;
         font-weight: bold;
     }
@@ -149,17 +149,23 @@
 
 <div id="graph-wrapper">
     <div id="y-axis"></div>
-
     <div id="graph-container">
         <div id="graph"></div>
     </div>
 </div>
 
 <div id="axis-titles">
-    <div id="y-title">Number of Students</div>
     <div id="x-title">Categories</div>
 </div>
 
 <script>
 // RANDOM COLOR
-function randomCo
+function randomColor() {
+    return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
+}
+
+// UPDATE Y-AXIS + GRIDLINES
+function updateYAxis() {
+    const bars = [...document.querySelectorAll(".bar")];
+    const yAxis = document.getElementById("y-axis");
+    cons
