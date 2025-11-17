@@ -3,116 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <title>Student Bar Graph Creator</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body {
-    font-family: Arial, sans-serif;
-    max-width: 1000px;
-    margin: 30px auto;
-    padding: 20px;
-    background: #f7f7f7;
-}
-h2 { text-align: center; }
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #f7f7f7;
+    }
+    h2 { text-align: center; margin-top: 0; }
 
-#controls {
-    margin-bottom: 20px;
-    text-align: center;
-}
-input { padding: 6px; margin-right: 10px; }
-button { padding: 6px 12px; margin: 5px; cursor: pointer; }
+    #controls {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    input { padding: 6px; margin-right: 10px; }
+    button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 
-#graph-wrapper {
-    display: flex;
-    margin-top: 20px;
-}
+    /* Wrapper that holds y-axis and graph area */
+    #graph-wrapper {
+        display: flex;
+        align-items: flex-end;
+        margin-top: 20px;
+    }
 
-#y-axis {
-    width: 50px;
-    display: flex;
-    flex-direction: column-reverse;
-    margin-right: 10px;
-    text-align: right;
-    font-size: 14px;
-    padding-bottom: 10px;
-}
-#y-axis div {
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
+    /* Y-axis area (just a label column) */
+    #y-axis {
+        width: 60px;
+        position: relative;
+        height: 370px; /* graph height (350) + top/bottom padding allowance */
+        margin-right: 10px;
+        font-size: 14px;
+    }
+    /* Each y tick (we will position absolutely from bottom in JS) */
+    .y-tick {
+        position: absolute;
+        right: 6px;
+        transform: translateY(50%); /* center text on the grid line */
+        font-size: 13px;
+    }
 
-#graph-container {
-    position: relative;
-    flex: 1;
-}
+    /* Container for the graph and the overlayed grid/ticks */
+    #graph-container {
+        position: relative;
+        flex: 1;
+    }
 
-#graph {
-    display: flex;
-    align-items: flex-end;
-    gap: 15px;
-    height: 350px;
-    border-left: 3px solid #000;
-    border-bottom: 3px solid #000;
-    padding: 10px;
-    background: #fff;
-    position: relative;
-    overflow: visible;
-}
+    /* Actual graph area where bars live */
+    #graph {
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        height: 350px;
+        border-left: 3px solid #000;
+        border-bottom: 3px solid #000;
+        padding: 10px;
+        background: #fff;
+        position: relative;
+        box-sizing: border-box;
+        overflow: visible;
+    }
 
-.grid-line {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: #ccc;
-    z-index: 0;
-}
+    /* Horizontal grid line (absolute positioned) */
+    .grid-line {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: #ddd;
+        z-index: 0;
+    }
 
-.v-grid-line {
-    position: absolute;
-    top: 0;
-    width: 1px;
-    height: 100%;
-    background: #ccc;
-    z-index: 0;
-}
+    /* Vertical grid line (absolute positioned) */
+    .v-grid-line {
+        position: absolute;
+        top: 0;
+        width: 1px;
+        height: 100%;
+        background: #eee;
+        z-index: 0;
+    }
 
-.bar-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: grab;
-    position: relative;
-}
+    /* Bar container: bar + label underneath */
+    .bar-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: grab;
+        position: relative;
+        z-index: 10; /* sit above grid lines */
+        width: 80px; /* gives room for label */
+        box-sizing: border-box;
+    }
 
-.bar {
-    width: 50px;
-    color: white;
-    border-radius: 5px 5px 0 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    font-weight: bold;
-    padding-bottom: 5px;
-    user-select: none;
-    z-index: 10;
-}
+    /* The visible bar */
+    .bar {
+        width: 50px;
+        color: white;
+        border-radius: 5px 5px 0 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        font-weight: bold;
+        padding-bottom: 5px;
+        user-select: none;
+        box-sizing: border-box;
+    }
 
-.label {
-    position: absolute;
-    top: 5px;
-    color: #000;
-    font-size: 14px;
-    width: 80px;
-    text-align: center;
-    word-wrap: break-word;
-    pointer-events: none;
-}
+    /* Label is now below the bar so it lines up with the bar's x-position */
+    .label {
+        margin-top: 8px;
+        color: #000;
+        font-size: 14px;
+        width: 80px;
+        text-align: center;
+        word-wrap: break-word;
+        pointer-events: none;
+    }
+
+    /* small helper for the value above the bar if desired (not used currently) */
+    .value-badge {
+        position: absolute;
+        bottom: calc(100% + 4px);
+        font-size: 12px;
+        color: #000;
+        pointer-events: none;
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 16px;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width:600px) {
+        #graph { height: 240px; }
+        #y-axis { height: 260px; }
+    }
 </style>
 </head>
 <body>
-
 
 <h2>Student Bar Graph Creator</h2>
 
@@ -125,214 +157,244 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 </div>
 
 <div id="graph-wrapper">
-    <div id="y-axis"></div>
+    <div id="y-axis" aria-hidden="true"></div>
 
     <div id="graph-container">
-        <div id="graph"></div>
+        <div id="graph" aria-live="polite"></div>
     </div>
 </div>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-// Random color generator
-function randomColor() {
-    return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
-}
+    // Shared scale: 1 data unit = SCALE px of bar height
+    const SCALE = 5;
+    const GRAPH_HEIGHT_PX = 350; // should match CSS #graph height
+    const GRAPH_PADDING_BOTTOM = 10; // the padding inside #graph (bottom)
+    const BAR_WIDTH = 50;
+    const GAP = 15;
+    const LEFT_INSIDE_PADDING = 10; // same padding used to compute x positions
 
-// FIXED Y-AXIS + GRID SYSTEM
-function updateYAxis() {
-    const bars = [...document.querySelectorAll(".bar")];
-    const yAxis = document.getElementById("y-axis");
-    const graphContainer = document.getElementById("graph-container");
+    // random color
+    function randomColor() {
+        return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
+    }
 
-    yAxis.innerHTML = "";
-    [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
-    [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
+    // Rebuild y-axis ticks and grid lines aligned to the bar scaling
+    function updateYAxisAndGrid() {
+        const bars = [...document.querySelectorAll(".bar")];
+        const yAxis = document.getElementById("y-axis");
+        const graphContainer = document.getElementById("graph-container");
 
-    if (bars.length === 0) return;
+        // clean previous marks and grid lines
+        yAxis.innerHTML = "";
+        [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
+        [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
 
-    const values = bars.map(b => parseInt(b.textContent));
-    const maxValue = Math.max(...values);
+        if (bars.length === 0) {
+            // show at least 0 on the axis
+            const zeroTick = document.createElement("div");
+            zeroTick.className = "y-tick";
+            zeroTick.style.bottom = (GRAPH_PADDING_BOTTOM) + "px";
+            zeroTick.textContent = "0";
+            yAxis.appendChild(zeroTick);
+            return;
+        }
 
-    const scale = 5; // 1 unit = 5px
-    const graphHeight = 350;
+        // extract numeric values (bar.textContent holds the numeric value)
+        const values = bars.map(b => parseInt(b.textContent, 10) || 0);
+        const maxValue = Math.max(...values);
 
-    // Generate axis numbers + horizontal grid
-    for (let i = 0; i <= maxValue; i++) {
-        const mark = document.createElement("div");
-        mark.textContent = i;
-        yAxis.appendChild(mark);
+        // create ticks for every integer from 0..maxValue
+        // each tick position (from bottom of graph) = GRAPH_PADDING_BOTTOM + value * SCALE
+        for (let v = 0; v <= maxValue; v++) {
+            // Y-axis label (positioned absolutely inside #y-axis)
+            const tick = document.createElement("div");
+            tick.className = "y-tick";
+            tick.style.bottom = (GRAPH_PADDING_BOTTOM + v * SCALE) + "px";
+            tick.textContent = v;
+            yAxis.appendChild(tick);
 
-        if (i > 0) {
+            // Horizontal grid line across the graph (skip the 0 line if you prefer)
             const grid = document.createElement("div");
-            grid.classList.add("grid-line");
-
-            // FIXED alignment (consistent with bar height)
-            grid.style.bottom = (i * scale) + 10 + "px";
-
+            grid.className = "grid-line";
+            grid.style.bottom = (GRAPH_PADDING_BOTTOM + v * SCALE) + "px";
             graphContainer.appendChild(grid);
         }
-    }
 
-    // Vertical lines aligned to bars
-    const barWidth = 50;
-    const gap = 15;
-
-    bars.forEach((bar, index) => {
-        const vLine = document.createElement("div");
-        vLine.classList.add("v-grid-line");
-
-        const xPos = 10 + index * (barWidth + gap) + barWidth / 2;
-        vLine.style.left = xPos + "px";
-
-        graphContainer.appendChild(vLine);
-    });
-}
-
-
-
-// Add new bar
-function addBar() {
-    const category = document.getElementById("category").value;
-    const value = document.getElementById("value").value;
-
-    if (!category || value === "") {
-        alert("Enter category and value!");
-        return;
-    }
-
-    const container = document.createElement("div");
-    container.classList.add("bar-container");
-
-    const bar = document.createElement("div");
-    bar.classList.add("bar");
-    bar.style.height = value * 5 + "px";
-    bar.style.backgroundColor = randomColor();
-    bar.textContent = value;
-
-    const label = document.createElement("div");
-    label.classList.add("label");
-    label.textContent = category;
-
-    container.appendChild(bar);
-    container.appendChild(label);
-
-    document.getElementById("graph").appendChild(container);
-
-    // Bar editing
-    container.addEventListener("click", function() {
-        const newValue = prompt("Enter new value:", bar.textContent);
-        const newLabel = prompt("Enter new label:", label.textContent);
-        if (newValue !== null && !isNaN(newValue)) {
-            bar.style.height = newValue * 5 + "px";
-            bar.textContent = newValue;
+        // vertical grid lines aligned with each bar center
+        const graph = document.getElementById("graph");
+        const barCount = bars.length;
+        for (let i = 0; i < barCount; i++) {
+            const vLine = document.createElement("div");
+            vLine.className = "v-grid-line";
+            // compute x relative to graph-container left (account for graph's left inside padding)
+            const xPos = LEFT_INSIDE_PADDING + i * (BAR_WIDTH + GAP) + BAR_WIDTH / 2;
+            vLine.style.left = xPos + "px";
+            graphContainer.appendChild(vLine);
         }
-        if (newLabel !== null) {
-            label.textContent = newLabel;
-        }
-        updateYAxis();
-    });
-
-    document.getElementById("category").value = "";
-    document.getElementById("value").value = "";
-
-    updateYAxis();
-}
-
-
-
-// Drag-to-resize bar
-let dragging = null;
-
-document.getElementById("graph").addEventListener("mousedown", function(e) {
-    if (e.target.classList.contains("bar")) {
-        dragging = e.target;
-        document.addEventListener("mousemove", dragBar);
-        document.addEventListener("mouseup", endDrag);
     }
-});
 
-function dragBar(e) {
-    if (!dragging) return;
+    // Add a new bar and its label
+    function addBar() {
+        const categoryEl = document.getElementById("category");
+        const valueEl = document.getElementById("value");
 
-    const graph = document.getElementById("graph");
-    const rect = graph.getBoundingClientRect();
+        const category = categoryEl.value.trim();
+        const valueRaw = valueEl.value;
+        if (!category || valueRaw === "") {
+            alert("Please enter a category and a value.");
+            return;
+        }
 
-    let height = rect.bottom - e.clientY;
+        const numeric = parseFloat(valueRaw);
+        if (isNaN(numeric) || numeric < 0) {
+            alert("Please enter a valid non-negative number.");
+            return;
+        }
 
-    if (height < 0) height = 0;
-    if (height > rect.height) height = rect.height;
+        const container = document.createElement("div");
+        container.className = "bar-container";
 
-    dragging.style.height = height + "px";
-    dragging.textContent = Math.round(height / 5);
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = (numeric * SCALE) + "px";
+        bar.style.backgroundColor = randomColor();
+        bar.textContent = Math.round(numeric).toString();
 
-    updateYAxis();
-}
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = category;
 
-function endDrag() {
-    dragging = null;
-    document.removeEventListener("mousemove", dragBar);
-    document.removeEventListener("mouseup", endDrag);
-}
+        // append in order: bar then label so label sits below
+        container.appendChild(bar);
+        container.appendChild(label);
 
+        // single-click to edit value/label
+        container.addEventListener("click", function(e) {
+            // avoid triggering when dragging (quick hack: require small movement)
+            if (e.detail === 0) return;
+            const newVal = prompt("Enter new value:", bar.textContent);
+            const newLabel = prompt("Enter new label:", label.textContent);
+            if (newVal !== null && newVal !== "") {
+                const n = parseFloat(newVal);
+                if (!isNaN(n) && n >= 0) {
+                    bar.style.height = (n * SCALE) + "px";
+                    bar.textContent = Math.round(n).toString();
+                }
+            }
+            if (newLabel !== null) label.textContent = newLabel;
+            updateYAxisAndGrid();
+        });
 
+        document.getElementById("graph").appendChild(container);
 
-// Clear graph
-function clearGraph() {
-    document.getElementById("graph").innerHTML = "";
-    document.getElementById("y-axis").innerHTML = "";
+        // clear inputs and refresh axis/grid
+        categoryEl.value = "";
+        valueEl.value = "";
+        updateYAxisAndGrid();
+    }
 
-    [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
-    [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
-}
+    // Drag-to-resize logic
+    let dragging = null;
+    let dragStartY = 0;
+    let originalHeight = 0;
 
-
-
-// Export graph
-function exportGraph() {
-    const graph = document.getElementById("graph");
-    const canvas = document.createElement("canvas");
-    canvas.width = graph.offsetWidth;
-    canvas.height = graph.offsetHeight;
-
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    [...graph.children].forEach((container, index) => {
-        const bar = container.querySelector(".bar");
-        const label = container.querySelector(".label");
-
-        const x = 20 + index * 70;
-        const barHeight = parseInt(bar.style.height);
-
-        ctx.fillStyle = bar.style.backgroundColor;
-        ctx.fillRect(x, canvas.height - barHeight - 20, 50, barHeight);
-
-        ctx.fillStyle = "#000";
-        ctx.font = "16px Arial";
-        ctx.fillText(bar.textContent, x + 10, canvas.height - barHeight - 30);
-        ctx.fillText(label.textContent, x, canvas.height - 5);
+    document.getElementById("graph").addEventListener("mousedown", function(e) {
+        if (e.target.classList.contains("bar")) {
+            dragging = e.target;
+            dragStartY = e.clientY;
+            // get current pixel height of the bar
+            originalHeight = parseFloat(getComputedStyle(dragging).height);
+            document.addEventListener("mousemove", onDrag);
+            document.addEventListener("mouseup", endDrag);
+            e.preventDefault();
+        }
     });
 
-    const link = document.createElement("a");
-    link.download = "bar_graph.png";
-    link.href = canvas.toDataURL();
-    link.click();
-}
+    function onDrag(e) {
+        if (!dragging) return;
+        const dy = dragStartY - e.clientY; // positive means move up
+        let newHeight = originalHeight + dy;
+        // clamp
+        if (newHeight < 0) newHeight = 0;
+        if (newHeight > GRAPH_HEIGHT_PX) newHeight = GRAPH_HEIGHT_PX;
+        dragging.style.height = newHeight + "px";
+        dragging.textContent = Math.round(newHeight / SCALE);
+        updateYAxisAndGrid();
+    }
 
+    function endDrag() {
+        dragging = null;
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", endDrag);
+    }
 
+    // Clear everything
+    window.clearGraph = function() {
+        document.getElementById("graph").innerHTML = "";
+        document.getElementById("y-axis").innerHTML = "";
+        [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
+        [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
+    };
 
-// Button listener
-document.getElementById("addBarBtn").addEventListener("click", addBar);
+    // Export the visible graph area to PNG (simple canvas draw)
+    window.exportGraph = function() {
+        const graph = document.getElementById("graph");
+        // create canvas sized to graph inner area
+        const canvas = document.createElement("canvas");
+        canvas.width = graph.offsetWidth;
+        canvas.height = graph.offsetHeight;
+        const ctx = canvas.getContext("2d");
 
+        // white background
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // draw each bar
+        const containers = [...graph.querySelectorAll(".bar-container")];
+        containers.forEach((container, i) => {
+            const bar = container.querySelector(".bar");
+            const label = container.querySelector(".label");
+            const barHeight = parseFloat(getComputedStyle(bar).height);
+            const x = LEFT_INSIDE_PADDING + i * (BAR_WIDTH + GAP);
+            const y = canvas.height - barHeight - GRAPH_PADDING_BOTTOM;
+
+            // draw bar
+            ctx.fillStyle = bar.style.backgroundColor || "#888";
+            ctx.fillRect(x, y, BAR_WIDTH, barHeight);
+
+            // value above bar
+            ctx.fillStyle = "#000";
+            ctx.font = "14px Arial";
+            ctx.fillText(bar.textContent, x + 8, y - 6);
+
+            // label under bar (wrap if necessary)
+            ctx.font = "12px Arial";
+            const labelText = label.textContent;
+            // center label
+            const labelX = x + (BAR_WIDTH / 2);
+            ctx.textAlign = "center";
+            ctx.fillText(labelText, labelX, canvas.height - 4);
+            ctx.textAlign = "start";
+        });
+
+        // download
+        const link = document.createElement("a");
+        link.download = "bar_graph.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    };
+
+    // wire add button
+    document.getElementById("addBarBtn").addEventListener("click", addBar);
+
+    // initialize axis (shows 0)
+    updateYAxisAndGrid();
 });
 </script>
 
-
-<footer style="text-align:center; margin-top:20px; font-size:16px;">
+<footer>
     Created by Mr. Cucco 2025
 </footer>
 
