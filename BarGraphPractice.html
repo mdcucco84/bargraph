@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Student Bar Graph Creator</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #f7f7f7;
+    }
+    h2 { text-align: center; }
+
+    #graph {
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        height: 350px;
+        border-left: 3px solid #000;
+        border-bottom: 3px solid #000;
+        padding: 10px;
+        background: #fff;
+        position: relative;
+    }
+
+    .bar-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: grab;
+    }
+
+    .bar {
+        width: 50px;
+        text-align: center;
+        color: white;
+        border-radius: 5px 5px 0 0;
+        user-select: none;
+    }
+
+    .label {
+        margin-top: 5px;
+        text-align: center;
+        width: 60px;
+        word-wrap: break-word;
+    }
+
+    #controls {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    input {
+        padding: 6px;
+        margin-right: 10px;
+    }
+
+    button {
+        padding: 6px 12px;
+        margin: 5px;
+        cursor: pointer;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>PASCS Clifton Elementary Student Bar Graph Creator</h2>
+
+<div id="controls">
+    <input type="text" id="category" placeholder="Category (ex: Apples)">
+    <input type="number" id="value" placeholder="Value" min="0">
+    <button onclick="addBar()">Add Bar</button>
+    <button onclick="clearGraph()">Clear Graph</button>
+    <button onclick="exportGraph()">Export as PNG</button>
+</div>
+
+<div id="graph"></div>
+
+<script>
+// Random color generator
+function randomColor() {
+    return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
+}
+
+// Add bar to graph
+function addBar() {
+    const category = document.getElementById("category").value;
+    const value = document.getElementById("value").value;
+
+    if (!category || value === "") {
+        alert("Please enter a category and a value!");
+        return;
+    }
+
+    const container = document.createElement("div");
+    container.classList.add("bar-container");
+
+    const bar = document.createElement("div");
+    bar.classList.add("bar");
+    bar.style.height = value * 5 + "px";
+    bar.style.backgroundColor = randomColor();
+    bar.textContent = value;
+
+    // Enable drag
+    bar.addEventListener("mousedown", startDrag);
+
+    const label = document.createElement("div");
+    label.classList.add("label");
+    label.textContent = category;
+
+    container.appendChild(bar);
+    container.appendChild(label);
+
+    document.getElementById("graph").appendChild(container);
+
+    document.getElementById("category").value = "";
+    document.getElementById("value").value = "";
+}
+
+
+// Drag logic
+let dragging = null;
+
+function startDrag(e) {
+    dragging = e.target;
+
+    document.addEventListener("mousemove", dragBar);
+    document.addEventListener("mouseup", endDrag);
+}
+
+function dragBar(e) {
+    if (!dragging) return;
+
+    const graph = document.getElementById("graph");
+    const graphRect = graph.getBoundingClientRect();
+
+    let height = graphRect.bottom - e.clientY;
+
+    // Keep height inside graph
+    if (height < 0) height = 0;
+    if (height > graphRect.height) height = graphRect.height;
+
+    dragging.style.height = height + "px";
+    dragging.textContent = Math.round(height / 5);
+}
+
+function endDrag() {
+    document.removeEventListener("mousemove", dragBar);
+    document.removeEventListener("mouseup", endDrag);
+    dragging = null;
+}
+
+
+// Clear graph
+function clearGraph() {
+    document.getElementById("graph").innerHTML = "";
+}
+
+
+// Export graph as PNG
+function exportGraph() {
+    const graph = document.getElementById("graph");
+
+    // Create a canvas
+    const canvas = document.createElement("canvas");
+    canvas.width = graph.offsetWidth;
+    canvas.height = graph.offsetHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    // White background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw each bar
+    [...graph.children].forEach((container, index) => {
+        const bar = container.querySelector(".bar");
+        const label = container.querySelector(".label");
+
+        const x = 20 + index * 70;
+        const barHeight = parseInt(bar.style.height);
+
+        // Bar rectangle
+        ctx.fillStyle = bar.style.backgroundColor;
+        ctx.fillRect(x, canvas.height - barHeight - 20, 50, barHeight);
+
+        // Value text
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.fillText(bar.textContent, x + 10, canvas.height - barHeight - 30);
+
+        // Label text
+        ctx.fillText(label.textContent, x, canvas.height - 5);
+    });
+
+    // Download
+    const link = document.createElement("a");
+    link.download = "bar_graph.png";
+    link.href = canvas.toDataURL();
+    link.click();
+}
+</script>
+
+</body>
+	<footer style="text-align:center; margin-top:20px; font-size:16px;">
+    Created by Mr. Cucco 2025
+</footer>
+</html>
