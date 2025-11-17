@@ -49,6 +49,7 @@
     <input type="text" id="x3" value="C">
     <input type="text" id="x4" value="D">
     <input type="text" id="x5" value="E">
+    <input type="text" id="x5" value="F">
 
     <br><br>
 
@@ -58,6 +59,7 @@
     <input type="number" id="y3" value="3">
     <input type="number" id="y4" value="4">
     <input type="number" id="y5" value="5">
+    <input type="number" id="y5" value="6">
 
     <br><br>
 
@@ -105,7 +107,7 @@ function createChart(labels, values) {
 }
 
 // Load initial chart
-createChart(['A', 'B', 'C', 'D', 'E'], [1, 2, 3, 4, 5]);
+createChart(['A', 'B', 'C', 'D', 'E', 'F'], [1, 2, 3, 4, 5, 6]);
 
 // Update chart with edited values
 function updateChart() {
@@ -114,7 +116,8 @@ function updateChart() {
         document.getElementById('x2').value,
         document.getElementById('x3').value,
         document.getElementById('x4').value,
-        document.getElementById('x5').value
+        document.getElementById('x5').value,
+        document.getElementById('x6').value
     ];
 
     const values = [
@@ -122,7 +125,8 @@ function updateChart() {
         parseFloat(document.getElementById('y2').value),
         parseFloat(document.getElementById('y3').value),
         parseFloat(document.getElementById('y4').value),
-        parseFloat(document.getElementById('y5').value)
+        parseFloat(document.getElementById('y5').value),
+        parseFloat(document.getElementById('y6').value)
     ];
 
     createChart(labels, values);
