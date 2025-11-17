@@ -1,67 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bar Chart Example</title>
+<meta charset="UTF-8">
+<title>Editable Bar Chart</title>
 
-    <!-- Load Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
-    <!-- Load data labels plugin so values appear on top of bars -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        #chart-container {
-            width: 600px;
-        }
-    </style>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+    }
+    .editor {
+        margin-bottom: 25px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        width: 450px;
+        background: #f8f8f8;
+    }
+    input {
+        width: 90px;
+        margin: 5px;
+        padding: 5px;
+    }
+    button {
+        margin-top: 10px;
+        padding: 8px 15px;
+        cursor: pointer;
+    }
+    #chart-container {
+        max-width: 700px;
+    }
+</style>
 </head>
 <body>
 
-<h2>Bar Chart</h2>
+<h2>Editable Bar Chart</h2>
 
+<!-- Editable Data Section -->
+<div class="editor">
+    <h3>Edit Chart Data</h3>
+
+    <strong>X Labels:</strong><br>
+    <input type="text" id="x1" value="A">
+    <input type="text" id="x2" value="B">
+    <input type="text" id="x3" value="C">
+    <input type="text" id="x4" value="D">
+    <input type="text" id="x5" value="E">
+
+    <br><br>
+
+    <strong>Y Values:</strong><br>
+    <input type="number" id="y1" value="1">
+    <input type="number" id="y2" value="2">
+    <input type="number" id="y3" value="3">
+    <input type="number" id="y4" value="4">
+    <input type="number" id="y5" value="5">
+
+    <br><br>
+
+    <button onclick="updateChart()">Update Chart</button>
+</div>
+
+<!-- Chart Canvas -->
 <div id="chart-container">
     <canvas id="myChart"></canvas>
 </div>
 
 <script>
+let chart;
+
+function createChart(labels, values) {
     const ctx = document.getElementById('myChart');
 
-    new Chart(ctx, {
+    if (chart) chart.destroy(); // Remove old chart
+
+    chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['A', 'B', 'C', 'D', 'E'],
+            labels: labels,
             datasets: [{
-                label: 'y',
-                data: [1, 2, 3, 4, 5],
+                label: 'Values',
+                data: values,
                 backgroundColor: '#8ccdc4'
             }]
         },
         options: {
             plugins: {
                 datalabels: {
-                    color: '#000',
                     anchor: 'end',
                     align: 'top',
-                    font: {
-                        weight: 'bold'
-                    }
+                    color: '#000',
+                    font: { weight: 'bold' }
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 5
-                }
+                y: { beginAtZero: true }
             }
         },
         plugins: [ChartDataLabels]
     });
+}
+
+// Load initial chart
+createChart(['A', 'B', 'C', 'D', 'E'], [1, 2, 3, 4, 5]);
+
+// Update chart with edited values
+function updateChart() {
+    const labels = [
+        document.getElementById('x1').value,
+        document.getElementById('x2').value,
+        document.getElementById('x3').value,
+        document.getElementById('x4').value,
+        document.getElementById('x5').value
+    ];
+
+    const values = [
+        parseFloat(document.getElementById('y1').value),
+        parseFloat(document.getElementById('y2').value),
+        parseFloat(document.getElementById('y3').value),
+        parseFloat(document.getElementById('y4').value),
+        parseFloat(document.getElementById('y5').value)
+    ];
+
+    createChart(labels, values);
+}
 </script>
 
 </body>
