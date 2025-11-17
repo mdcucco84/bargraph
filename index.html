@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Student Bar Graph Creator</title>
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -34,12 +35,18 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
     font-size: 14px;
     padding-bottom: 10px;
 }
-#y-axis div { height: 20px; display: flex; align-items: center; justify-content: flex-end; }
+#y-axis div {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
 
 #graph-container {
     position: relative;
     flex: 1;
 }
+
 #graph {
     display: flex;
     align-items: flex-end;
@@ -53,10 +60,32 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
     overflow: visible;
 }
 
-.grid-line { position: absolute; left: 0; width: 100%; height: 1px; background: #ccc; z-index: 0; }
-.v-grid-line { position: absolute; top: 0; width: 1px; height: 100%; background: #ccc; z-index: 0; }
+.grid-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #ccc;
+    z-index: 0;
+}
 
-.bar-container { display: flex; flex-direction: column; align-items: center; cursor: grab; position: relative; }
+.v-grid-line {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: #ccc;
+    z-index: 0;
+}
+
+.bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+    position: relative;
+}
+
 .bar {
     width: 50px;
     color: white;
@@ -69,6 +98,7 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
     user-select: none;
     z-index: 10;
 }
+
 .label {
     position: absolute;
     top: 5px;
@@ -83,6 +113,7 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 </head>
 <body>
 
+
 <h2>Student Bar Graph Creator</h2>
 
 <div id="controls">
@@ -95,67 +126,89 @@ button { padding: 6px 12px; margin: 5px; cursor: pointer; }
 
 <div id="graph-wrapper">
     <div id="y-axis"></div>
+
     <div id="graph-container">
         <div id="graph"></div>
     </div>
 </div>
 
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-// Random color
+// Random color generator
 function randomColor() {
     return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
 }
 
-// Update Y-axis and grid
+// FIXED Y-AXIS + GRID SYSTEM
 function updateYAxis() {
     const bars = [...document.querySelectorAll(".bar")];
     const yAxis = document.getElementById("y-axis");
     const graphContainer = document.getElementById("graph-container");
+
     yAxis.innerHTML = "";
     [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
     [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
+
     if (bars.length === 0) return;
 
     const values = bars.map(b => parseInt(b.textContent));
     const maxValue = Math.max(...values);
 
-    for (let i=0; i<=maxValue; i++) {
+    const scale = 5; // 1 unit = 5px
+    const graphHeight = 350;
+
+    // Generate axis numbers + horizontal grid
+    for (let i = 0; i <= maxValue; i++) {
         const mark = document.createElement("div");
         mark.textContent = i;
         yAxis.appendChild(mark);
 
-        if (i>0) {
+        if (i > 0) {
             const grid = document.createElement("div");
             grid.classList.add("grid-line");
-            grid.style.bottom = (350/maxValue)*i + 10 + "px";
+
+            // FIXED alignment (consistent with bar height)
+            grid.style.bottom = (i * scale) + 10 + "px";
+
             graphContainer.appendChild(grid);
         }
     }
 
-    bars.forEach((bar,index)=>{
+    // Vertical lines aligned to bars
+    const barWidth = 50;
+    const gap = 15;
+
+    bars.forEach((bar, index) => {
         const vLine = document.createElement("div");
         vLine.classList.add("v-grid-line");
-        const barWidth=50, gap=15;
-        const xPos = index*(barWidth+gap)+10+barWidth/2;
-        vLine.style.left = xPos+"px";
+
+        const xPos = 10 + index * (barWidth + gap) + barWidth / 2;
+        vLine.style.left = xPos + "px";
+
         graphContainer.appendChild(vLine);
     });
 }
 
-// Add bar
+
+
+// Add new bar
 function addBar() {
     const category = document.getElementById("category").value;
     const value = document.getElementById("value").value;
-    if (!category || value==="") { alert("Enter category and value!"); return; }
+
+    if (!category || value === "") {
+        alert("Enter category and value!");
+        return;
+    }
 
     const container = document.createElement("div");
     container.classList.add("bar-container");
 
     const bar = document.createElement("div");
     bar.classList.add("bar");
-    bar.style.height = value*5 + "px";
+    bar.style.height = value * 5 + "px";
     bar.style.backgroundColor = randomColor();
     bar.textContent = value;
 
@@ -165,88 +218,119 @@ function addBar() {
 
     container.appendChild(bar);
     container.appendChild(label);
+
     document.getElementById("graph").appendChild(container);
 
-    // Editable on click
+    // Bar editing
     container.addEventListener("click", function() {
-        const newValue = prompt("Enter new value for "+category, bar.textContent);
-        const newLabel = prompt("Enter new label for "+category, label.textContent);
-        if (newValue!==null && !isNaN(newValue)) { bar.style.height = newValue*5 + "px"; bar.textContent = newValue; }
-        if (newLabel!==null) { label.textContent = newLabel; }
+        const newValue = prompt("Enter new value:", bar.textContent);
+        const newLabel = prompt("Enter new label:", label.textContent);
+        if (newValue !== null && !isNaN(newValue)) {
+            bar.style.height = newValue * 5 + "px";
+            bar.textContent = newValue;
+        }
+        if (newLabel !== null) {
+            label.textContent = newLabel;
+        }
         updateYAxis();
     });
 
-    document.getElementById("category").value="";
-    document.getElementById("value").value="";
+    document.getElementById("category").value = "";
+    document.getElementById("value").value = "";
+
     updateYAxis();
 }
 
-// Drag bars
-let dragging=null;
-document.getElementById("graph").addEventListener("mousedown", function(e){
-    if(e.target.classList.contains("bar")){
-        dragging=e.target;
+
+
+// Drag-to-resize bar
+let dragging = null;
+
+document.getElementById("graph").addEventListener("mousedown", function(e) {
+    if (e.target.classList.contains("bar")) {
+        dragging = e.target;
         document.addEventListener("mousemove", dragBar);
         document.addEventListener("mouseup", endDrag);
     }
 });
-function dragBar(e){
-    if(!dragging)return;
+
+function dragBar(e) {
+    if (!dragging) return;
+
     const graph = document.getElementById("graph");
     const rect = graph.getBoundingClientRect();
+
     let height = rect.bottom - e.clientY;
-    if(height<0) height=0;
-    if(height>rect.height) height=rect.height;
+
+    if (height < 0) height = 0;
+    if (height > rect.height) height = rect.height;
+
     dragging.style.height = height + "px";
-    dragging.textContent = Math.round(height/5);
+    dragging.textContent = Math.round(height / 5);
+
     updateYAxis();
 }
-function endDrag(){
+
+function endDrag() {
+    dragging = null;
     document.removeEventListener("mousemove", dragBar);
     document.removeEventListener("mouseup", endDrag);
-    dragging=null;
 }
 
-// Clear
-function clearGraph(){
-    document.getElementById("graph").innerHTML="";
-    document.getElementById("y-axis").innerHTML="";
-    [...document.querySelectorAll(".grid-line")].forEach(el=>el.remove());
-    [...document.querySelectorAll(".v-grid-line")].forEach(el=>el.remove());
+
+
+// Clear graph
+function clearGraph() {
+    document.getElementById("graph").innerHTML = "";
+    document.getElementById("y-axis").innerHTML = "";
+
+    [...document.querySelectorAll(".grid-line")].forEach(el => el.remove());
+    [...document.querySelectorAll(".v-grid-line")].forEach(el => el.remove());
 }
 
-// Export
-function exportGraph(){
-    const graph=document.getElementById("graph");
-    const canvas=document.createElement("canvas");
-    canvas.width=graph.offsetWidth;
-    canvas.height=graph.offsetHeight;
-    const ctx=canvas.getContext("2d");
-    ctx.fillStyle="#fff";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    [...graph.children].forEach((container,index)=>{
-        const bar=container.querySelector(".bar");
-        const label=container.querySelector(".label");
-        const x=20+index*70;
-        const barHeight=parseInt(bar.style.height);
-        ctx.fillStyle=bar.style.backgroundColor;
-        ctx.fillRect(x, canvas.height-barHeight-20,50,barHeight);
-        ctx.fillStyle="#000";
-        ctx.font="16px Arial";
-        ctx.fillText(bar.textContent,x+10,canvas.height-barHeight-30);
-        ctx.fillText(label.textContent,x,canvas.height-5);
+
+
+// Export graph
+function exportGraph() {
+    const graph = document.getElementById("graph");
+    const canvas = document.createElement("canvas");
+    canvas.width = graph.offsetWidth;
+    canvas.height = graph.offsetHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    [...graph.children].forEach((container, index) => {
+        const bar = container.querySelector(".bar");
+        const label = container.querySelector(".label");
+
+        const x = 20 + index * 70;
+        const barHeight = parseInt(bar.style.height);
+
+        ctx.fillStyle = bar.style.backgroundColor;
+        ctx.fillRect(x, canvas.height - barHeight - 20, 50, barHeight);
+
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.fillText(bar.textContent, x + 10, canvas.height - barHeight - 30);
+        ctx.fillText(label.textContent, x, canvas.height - 5);
     });
-    const link=document.createElement("a");
-    link.download="bar_graph.png";
-    link.href=canvas.toDataURL();
+
+    const link = document.createElement("a");
+    link.download = "bar_graph.png";
+    link.href = canvas.toDataURL();
     link.click();
 }
 
-// Attach Add Bar button after DOM is ready
+
+
+// Button listener
 document.getElementById("addBarBtn").addEventListener("click", addBar);
 
 });
 </script>
+
 
 <footer style="text-align:center; margin-top:20px; font-size:16px;">
     Created by Mr. Cucco 2025
