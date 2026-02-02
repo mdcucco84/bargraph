@@ -1,0 +1,94 @@
+import random
+import getpass
+
+COLORS = ["R", "G", "B", "Y", "O", "P"]
+CODE_LENGTH = 4
+MAX_TURNS = 10
+
+
+def generate_ai_code():
+    return [random.choice(COLORS) for _ in range(CODE_LENGTH)]
+
+
+def get_secret_code_player():
+    print("Player 1: Set the secret code.")
+    print(f"Use colors: {COLORS} (example: RGBY)")
+    
+    while True:
+        code = getpass.getpass("Enter secret code (hidden): ").upper()
+        if len(code) == CODE_LENGTH and all(c in COLORS for c in code):
+            print("\n" * 50)
+            return list(code)
+        print("Invalid code. Try again.")
+
+
+def get_guess(turn):
+    while True:
+        guess = input(f"Turn {turn} - Enter your guess: ").upper()
+        if len(guess) == CODE_LENGTH and all(c in COLORS for c in guess):
+            return list(guess)
+        print("Invalid guess. Try again.")
+
+
+def evaluate_guess(secret, guess):
+    black_pegs = 0
+    white_pegs = 0
+
+    secret_copy = secret[:]
+    guess_copy = guess[:]
+
+    # Black pegs
+    for i in range(CODE_LENGTH):
+        if guess_copy[i] == secret_copy[i]:
+            black_pegs += 1
+            secret_copy[i] = None
+            guess_copy[i] = None
+
+    # White pegs
+    for i in range(CODE_LENGTH):
+        if guess_copy[i] and guess_copy[i] in secret_copy:
+            white_pegs += 1
+            secret_copy[secret_copy.index(guess_copy[i])] = None
+
+    return black_pegs, white_pegs
+
+
+def play_game(secret_code):
+    for turn in range(1, MAX_TURNS + 1):
+        guess = get_guess(turn)
+        black, white = evaluate_guess(secret_code, guess)
+
+        print(f"Feedback → Black pegs: {black}, White pegs: {white}\n")
+
+        if black == CODE_LENGTH:
+            print("🎉 Code cracked! You win!")
+            return
+
+    print("❌ Out of turns!")
+    print(f"The secret code was: {''.join(secret_code)}")
+
+
+def main():
+    print("=== MASTERMIND ===")
+    print("1. Player vs Player")
+    print("2. Player vs AI")
+
+    choice = input("Choose a mode (1 or 2): ").strip()
+
+    if choice == "1":
+        secret_code = get_secret_code_player()
+        print("Player 2: Start guessing!")
+        play_game(secret_code)
+
+    elif choice == "2":
+        print("AI has generated a secret code.")
+        print(f"Available colors: {COLORS}")
+        secret_code = generate_ai_code()
+        play_game(secret_code)
+
+    else:
+        print("Invalid choice.")
+
+
+if __name__ == "__main__":
+    main()
